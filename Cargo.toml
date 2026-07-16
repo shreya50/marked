@@ -8,10 +8,21 @@ license = "MIT"
 [lib]
 name = "marked_rs"
 path = "src/lib.rs"
+crate-type = ["rlib", "cdylib"]
 
 [[bin]]
 name = "marked-rs"
 path = "src/main.rs"
+
+[features]
+default = []
+node = ["dep:napi", "dep:napi-derive"]
+wasm = ["dep:wasm-bindgen"]
+
+[dependencies]
+napi = { version = "3", default-features = false, features = ["napi9"], optional = true }
+napi-derive = { version = "3", optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
 
 [profile.release]
 lto = true

@@ -1,0 +1,7 @@
+{
+  "name": "@marked-rs/node",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "description": "Node.js bindings for marked-rs"
+}

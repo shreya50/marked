@@ -127,6 +127,21 @@ let html = parse_with_options(
 
 GFM parsing is covered by fixtures in `tests/fixtures/gfm`. This is an intentionally focused subset; footnotes, alerts, and autolink literals remain future work.
 
+### Node.js and WebAssembly bindings
+
+Feature-gated bindings expose the same parser outside Rust:
+
+```bash
+# N-API native library
+cargo build --release --features node
+
+# Browser/WebAssembly artifact
+rustup target add wasm32-unknown-unknown
+cargo build --release --target wasm32-unknown-unknown --features wasm
+```
+
+The bindings export `parseMarkdown(markdown, gfm?)` for Node.js and `parse_markdown(markdown, gfm)` for WebAssembly. See [bindings/README.md](bindings/README.md) for packaging and browser glue-generation steps.
+
 ## Architecture
 
 The project separates the pipeline into small modules so that individual layers can evolve without entangling parsing and rendering concerns.
@@ -205,7 +220,7 @@ Please treat the output as an HTML fragment. Although all source text and genera
 - [x] Add nested block parsing and richer list behavior
 - [x] Add GitHub-Flavored Markdown extensions behind an explicit option
 - [x] Benchmark against JavaScript Markdown parsers on representative files
-- [ ] Offer Node.js (N-API) and WebAssembly bindings
+- [x] Offer Node.js (N-API) and WebAssembly bindings
 - [ ] Support streaming and incremental parsing
 
 ## Contributing

@@ -8,6 +8,11 @@ mod parser;
 mod renderer;
 mod tokenizer;
 
+#[cfg(feature = "node")]
+mod node_binding;
+#[cfg(feature = "wasm")]
+mod wasm_binding;
+
 pub use ast::{Block, Document, ListItem, TableAlignment};
 
 /// Optional parser features. The default stays close to the small core parser.

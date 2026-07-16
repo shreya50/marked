@@ -1,3 +1,5 @@
 /target/
 .DS_Store
 benchmarks/node_modules/
+bindings/node/*.node
+bindings/wasm/pkg/

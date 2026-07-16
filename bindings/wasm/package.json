@@ -1,0 +1,6 @@
+{
+  "name": "@marked-rs/wasm",
+  "version": "0.1.0",
+  "private": true,
+  "description": "WebAssembly bindings for marked-rs"
+}
