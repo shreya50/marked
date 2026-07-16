@@ -6,6 +6,7 @@ mod ast;
 mod inline;
 mod parser;
 mod renderer;
+mod streaming;
 mod tokenizer;
 
 #[cfg(feature = "node")]
@@ -14,6 +15,7 @@ mod node_binding;
 mod wasm_binding;
 
 pub use ast::{Block, Document, ListItem, TableAlignment};
+pub use streaming::{EditError, IncrementalParser, StreamParser};
 
 /// Optional parser features. The default stays close to the small core parser.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]

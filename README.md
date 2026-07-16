@@ -142,6 +142,31 @@ cargo build --release --target wasm32-unknown-unknown --features wasm
 
 The bindings export `parseMarkdown(markdown, gfm?)` for Node.js and `parse_markdown(markdown, gfm)` for WebAssembly. See [bindings/README.md](bindings/README.md) for packaging and browser glue-generation steps.
 
+### Streaming and incremental parsing
+
+`StreamParser` accepts arbitrary text chunks and emits HTML whenever a blank-line-delimited block group is complete. Call `finish()` to emit the final unfinished group:
+
+```rust
+use marked_rs::StreamParser;
+
+let mut stream = StreamParser::new();
+assert_eq!(stream.push("# Hello\n\n"), "<h1>Hello</h1>\n");
+let html = stream.finish();
+```
+
+For editor-style updates, `IncrementalParser` retains source and HTML while accepting byte-range replacements:
+
+```rust
+use marked_rs::IncrementalParser;
+
+let mut document = IncrementalParser::new("# Draft");
+document.replace(2..7, "Published")?;
+assert_eq!(document.html(), "<h1>Published</h1>\n");
+# Ok::<(), marked_rs::EditError>(())
+```
+
+Edits update only the specified source range at the API boundary; the current implementation refreshes the affected document synchronously. This preserves a stable incremental API while block-level caching evolves.
+
 ## Architecture
 
 The project separates the pipeline into small modules so that individual layers can evolve without entangling parsing and rendering concerns.
@@ -221,7 +246,7 @@ Please treat the output as an HTML fragment. Although all source text and genera
 - [x] Add GitHub-Flavored Markdown extensions behind an explicit option
 - [x] Benchmark against JavaScript Markdown parsers on representative files
 - [x] Offer Node.js (N-API) and WebAssembly bindings
-- [ ] Support streaming and incremental parsing
+- [x] Support streaming and incremental parsing
 
 ## Contributing
 
