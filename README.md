@@ -144,9 +144,7 @@ Build an optimized binary:
 cargo build --release
 ```
 
-The test suite includes focused unit tests and integration tests for parsing boundaries, escaping, list variants, code fences, and public AST access.
-
-Core CommonMark-style behavior is also covered by Markdown/HTML fixture pairs in `tests/fixtures/commonmark-core`. Add a matching `.md` and `.html` file there to create a new conformance case.
+The test suite includes focused unit tests and integration tests for parsing boundaries, escaping, list variants, code fences, and public AST access. Core CommonMark-style behavior is also covered by Markdown/HTML fixture pairs in `tests/fixtures/commonmark-core`; add a matching `.md` and `.html` file there to create a new conformance case.
 
 ## Benchmarking
 
@@ -171,7 +169,6 @@ For this synthetic corpus, `marked-rs` was approximately **2.6× faster**. This 
 
 The MVP intentionally does not yet support every Markdown dialect or CommonMark edge case. In particular, it does not currently cover:
 
-- Nested lists and nested blockquotes
 - Indented code blocks
 - Tables, task lists, footnotes, strikethrough, and other GFM extensions
 - Reference-style links, autolinks, titles, and URL edge cases
@@ -184,7 +181,7 @@ Please treat the output as an HTML fragment. Although all source text and genera
 ## Roadmap
 
 - [x] Broaden the core CommonMark subset and add fixture-based conformance tests
-- [ ] Add nested block parsing and richer list behavior
+- [x] Add nested block parsing and richer list behavior
 - [ ] Add GitHub-Flavored Markdown extensions behind an explicit option
 - [ ] Benchmark against JavaScript Markdown parsers on representative files
 - [ ] Offer Node.js (N-API) and WebAssembly bindings

@@ -8,7 +8,7 @@ mod parser;
 mod renderer;
 mod tokenizer;
 
-pub use ast::{Block, Document};
+pub use ast::{Block, Document, ListItem};
 
 /// Converts Markdown source to HTML.
 pub fn parse(markdown: &str) -> String {
@@ -51,7 +51,7 @@ mod tests {
     fn renders_lists_quotes_and_rules() {
         assert_eq!(
             parse("- one\n- two\n\n1. first\n2. second\n\n> wise words\n> continued\n\n---"),
-            "<ul>\n<li>one</li>\n<li>two</li>\n</ul>\n<ol>\n<li>first</li>\n<li>second</li>\n</ol>\n<blockquote>\n<p>wise words continued</p>\n</blockquote>\n<hr />\n"
+            "<ul>\n<li>one</li>\n<li>two</li>\n</ul>\n<ol>\n<li>first</li>\n<li>second</li>\n</ol>\n<blockquote>\n<p>wise words\ncontinued</p>\n</blockquote>\n<hr />\n"
         );
     }
 

@@ -12,7 +12,7 @@ fn escapes_attribute_values_and_preserves_inline_markup_in_link_labels() {
 fn supports_all_unordered_list_markers_and_multi_digit_ordered_lists() {
     assert_eq!(
         parse("* first\n+ second\n- third\n\n10. tenth\n11. eleventh"),
-        "<ul>\n<li>first</li>\n<li>second</li>\n<li>third</li>\n</ul>\n<ol>\n<li>tenth</li>\n<li>eleventh</li>\n</ol>\n"
+        "<ul>\n<li>first</li>\n<li>second</li>\n<li>third</li>\n</ul>\n<ol start=\"10\">\n<li>tenth</li>\n<li>eleventh</li>\n</ol>\n"
     );
 }
 
