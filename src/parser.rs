@@ -1,7 +1,8 @@
-use crate::ast::{Block, Document, ListItem};
+use crate::ast::{Block, Document, ListItem, TableAlignment};
 use crate::tokenizer::{tokenize, Line};
+use crate::Options;
 
-pub fn parse(lines: Vec<Line<'_>>) -> Document {
+pub fn parse(lines: Vec<Line<'_>>, options: Options) -> Document {
     let mut blocks = Vec::new();
     let mut i = 0;
 
@@ -12,6 +13,10 @@ pub fn parse(lines: Vec<Line<'_>>) -> Document {
         if let Some((level, content)) = heading(line) {
             blocks.push(Block::Heading { level, content: content.to_owned() });
             i += 1;
+        } else if options.gfm && table(&lines, i).is_some() {
+            let (table, next) = table(&lines, i).expect("table was checked above");
+            blocks.push(table);
+            i = next;
         } else if let Some((level, content)) = setext_heading(&lines, i) {
             blocks.push(Block::Heading { level, content: content.to_owned() });
             i += 2;
@@ -23,15 +28,15 @@ pub fn parse(lines: Vec<Line<'_>>) -> Document {
             blocks.push(Block::HorizontalRule);
             i += 1;
         } else if let Some(marker) = list_marker(line) {
-            let (list, next) = list(&lines, i, marker);
+            let (list, next) = list(&lines, i, marker, options);
             blocks.push(list);
             i = next;
         } else if quote_content(line).is_some() {
-            let (content, next) = quote(&lines, i);
+            let (content, next) = quote(&lines, i, options);
             blocks.push(Block::BlockQuote(content));
             i = next;
         } else {
-            let (content, next) = paragraph(&lines, i);
+            let (content, next) = paragraph(&lines, i, options);
             blocks.push(Block::Paragraph(content));
             i = next;
         }
@@ -110,7 +115,7 @@ fn list_marker(line: &str) -> Option<ListMarker<'_>> {
     })
 }
 
-fn list(lines: &[Line<'_>], mut i: usize, first: ListMarker<'_>) -> (Block, usize) {
+fn list(lines: &[Line<'_>], mut i: usize, first: ListMarker<'_>, options: Options) -> (Block, usize) {
     let ordered = first.ordered;
     let start = first.start;
     let indent = first.indent;
@@ -120,7 +125,8 @@ fn list(lines: &[Line<'_>], mut i: usize, first: ListMarker<'_>) -> (Block, usiz
         let Some(marker) = list_marker(lines[i].text) else { break; };
         if marker.ordered != ordered || marker.indent != indent { break; }
 
-        let mut item_lines = vec![marker.content.to_owned()];
+        let (checked, content) = task_marker(marker.content, options);
+        let mut item_lines = vec![content.to_owned()];
         i += 1;
         while i < lines.len() {
             let current = lines[i].text;
@@ -138,8 +144,8 @@ fn list(lines: &[Line<'_>], mut i: usize, first: ListMarker<'_>) -> (Block, usiz
             }
             break;
         }
-        let blocks = parse(tokenize(&item_lines.join("\n"))).blocks;
-        items.push(ListItem { blocks });
+        let blocks = parse(tokenize(&item_lines.join("\n")), options).blocks;
+        items.push(ListItem { checked, blocks });
     }
     (Block::List { ordered, start, items }, i)
 }
@@ -148,7 +154,7 @@ fn quote_content(line: &str) -> Option<&str> {
     line.trim_start().strip_prefix('>').map(|content| content.strip_prefix(' ').unwrap_or(content))
 }
 
-fn quote(lines: &[Line<'_>], mut i: usize) -> (Vec<Block>, usize) {
+fn quote(lines: &[Line<'_>], mut i: usize, options: Options) -> (Vec<Block>, usize) {
     let mut content = Vec::new();
     while i < lines.len() {
         match quote_content(lines[i].text) {
@@ -156,15 +162,66 @@ fn quote(lines: &[Line<'_>], mut i: usize) -> (Vec<Block>, usize) {
             None => break,
         }
     }
-    (parse(tokenize(&content.join("\n"))).blocks, i)
+    (parse(tokenize(&content.join("\n")), options).blocks, i)
 }
 
-fn paragraph(lines: &[Line<'_>], mut i: usize) -> (String, usize) {
+fn paragraph(lines: &[Line<'_>], mut i: usize, options: Options) -> (String, usize) {
     let mut content = Vec::new();
     while i < lines.len() {
         let line = lines[i].text;
-        if line.trim().is_empty() || fence_opening(line).is_some() || heading(line).is_some() || setext_heading(lines, i).is_some() || is_rule(line) || list_marker(line).is_some() || quote_content(line).is_some() { break; }
+        if line.trim().is_empty() || fence_opening(line).is_some() || heading(line).is_some() || (options.gfm && table(lines, i).is_some()) || setext_heading(lines, i).is_some() || is_rule(line) || list_marker(line).is_some() || quote_content(line).is_some() { break; }
         content.push(line.trim_start()); i += 1;
     }
     (content.join("\n"), i)
+}
+
+fn task_marker(content: &str, options: Options) -> (Option<bool>, &str) {
+    if !options.gfm { return (None, content); }
+    for (prefix, checked) in [("[ ] ", false), ("[x] ", true), ("[X] ", true)] {
+        if let Some(rest) = content.strip_prefix(prefix) { return (Some(checked), rest); }
+    }
+    (None, content)
+}
+
+fn table(lines: &[Line<'_>], index: usize) -> Option<(Block, usize)> {
+    let header = split_table_row(lines.get(index)?.text)?;
+    let alignments = table_divider(lines.get(index + 1)?.text)?;
+    if header.len() != alignments.len() { return None; }
+
+    let mut rows = Vec::new();
+    let mut next = index + 2;
+    while let Some(line) = lines.get(next) {
+        let Some(row) = split_table_row(line.text) else { break; };
+        if row.len() != header.len() { break; }
+        rows.push(row.into_iter().map(str::to_owned).collect());
+        next += 1;
+    }
+    Some((Block::Table { header: header.into_iter().map(str::to_owned).collect(), alignments, rows }, next))
+}
+
+fn split_table_row(line: &str) -> Option<Vec<&str>> {
+    let trimmed = line.trim();
+    if !trimmed.contains('|') { return None; }
+    let trimmed = trimmed.strip_prefix('|').unwrap_or(trimmed);
+    let trimmed = trimmed.strip_suffix('|').unwrap_or(trimmed);
+    Some(trimmed.split('|').map(str::trim).collect())
+}
+
+fn table_divider(line: &str) -> Option<Vec<TableAlignment>> {
+    let cells = split_table_row(line)?;
+    let mut alignments = Vec::new();
+    for cell in cells {
+        let cell = cell.trim();
+        let left = cell.starts_with(':');
+        let right = cell.ends_with(':');
+        let dashes = cell.trim_matches(':');
+        if dashes.len() < 3 || !dashes.chars().all(|ch| ch == '-') { return None; }
+        alignments.push(match (left, right) {
+            (true, true) => TableAlignment::Center,
+            (true, false) => TableAlignment::Left,
+            (false, true) => TableAlignment::Right,
+            (false, false) => TableAlignment::None,
+        });
+    }
+    Some(alignments)
 }

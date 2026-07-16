@@ -21,6 +21,7 @@ This repository is an MVP, not a complete implementation of [Marked](https://mar
 - Reusable library API and command-line interface
 - Inspectable block-level AST for custom renderers
 - Fenced code blocks with language classes
+- Optional GitHub-Flavored Markdown extensions
 - Unit and integration coverage for common and edge-case inputs
 
 ## Supported Markdown
@@ -111,6 +112,21 @@ let document = parse_document("## Changelog\n\n- Added parser");
 assert!(matches!(document.blocks[0], Block::Heading { level: 2, .. }));
 ```
 
+### GitHub-Flavored Markdown (opt-in)
+
+The core parser does not enable extensions by default. Enable the supported GFM subset when you need tables, task-list checkboxes, and strikethrough:
+
+```rust
+use marked_rs::{parse_with_options, Options};
+
+let html = parse_with_options(
+    "- [x] Ship `marked-rs`\n\nThis is ~~done~~.",
+    Options { gfm: true },
+);
+```
+
+GFM parsing is covered by fixtures in `tests/fixtures/gfm`. This is an intentionally focused subset; footnotes, alerts, and autolink literals remain future work.
+
 ## Architecture
 
 The project separates the pipeline into small modules so that individual layers can evolve without entangling parsing and rendering concerns.
@@ -170,7 +186,7 @@ For this synthetic corpus, `marked-rs` was approximately **2.6× faster**. This 
 The MVP intentionally does not yet support every Markdown dialect or CommonMark edge case. In particular, it does not currently cover:
 
 - Indented code blocks
-- Tables, task lists, footnotes, strikethrough, and other GFM extensions
+- Footnotes, alerts, autolink literals, and other GFM extensions
 - Reference-style links, autolinks, titles, and URL edge cases
 - HTML passthrough
 - Full delimiter rules for complex or overlapping emphasis
@@ -182,7 +198,7 @@ Please treat the output as an HTML fragment. Although all source text and genera
 
 - [x] Broaden the core CommonMark subset and add fixture-based conformance tests
 - [x] Add nested block parsing and richer list behavior
-- [ ] Add GitHub-Flavored Markdown extensions behind an explicit option
+- [x] Add GitHub-Flavored Markdown extensions behind an explicit option
 - [ ] Benchmark against JavaScript Markdown parsers on representative files
 - [ ] Offer Node.js (N-API) and WebAssembly bindings
 - [ ] Support streaming and incremental parsing

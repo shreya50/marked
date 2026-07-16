@@ -8,12 +8,24 @@ mod parser;
 mod renderer;
 mod tokenizer;
 
-pub use ast::{Block, Document, ListItem};
+pub use ast::{Block, Document, ListItem, TableAlignment};
+
+/// Optional parser features. The default stays close to the small core parser.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Options {
+    /// Enable GitHub-Flavored Markdown tables, task lists, and strikethrough.
+    pub gfm: bool,
+}
 
 /// Converts Markdown source to HTML.
 pub fn parse(markdown: &str) -> String {
-    let document = parse_document(markdown);
-    renderer::render(&document)
+    parse_with_options(markdown, Options::default())
+}
+
+/// Converts Markdown to HTML with explicitly selected parser features.
+pub fn parse_with_options(markdown: &str, options: Options) -> String {
+    let document = parse_document_with_options(markdown, options);
+    renderer::render(&document, options)
 }
 
 /// Parses Markdown into the block-level document representation.
@@ -21,8 +33,13 @@ pub fn parse(markdown: &str) -> String {
 /// This is useful when a caller wants to inspect the parser output before it is
 /// rendered, or add a custom renderer later.
 pub fn parse_document(markdown: &str) -> Document {
+    parse_document_with_options(markdown, Options::default())
+}
+
+/// Parses Markdown into a document with explicitly selected parser features.
+pub fn parse_document_with_options(markdown: &str, options: Options) -> Document {
     let lines = tokenizer::tokenize(markdown);
-    parser::parse(lines)
+    parser::parse(lines, options)
 }
 
 #[cfg(test)]
