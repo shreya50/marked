@@ -164,22 +164,27 @@ The test suite includes focused unit tests and integration tests for parsing bou
 
 ## Benchmarking
 
-Run the built-in throughput benchmark in release mode. The optional argument is the number of parsing iterations (default: `20`).
+The repository includes a mixed-feature corpus—headings, quotes, lists, code, tables, task markers, and strikethrough—and matching Rust and JavaScript runners. Both runners concatenate the same corpus, repeat it to a controlled size, warm up their parser, and report mean time and throughput.
 
 ```bash
-cargo run --release --example benchmark -- 30
+# Rust parser, with GFM enabled for parity with the corpus
+cargo run --release --example benchmark -- 30 2000 benchmarks/corpus/mixed-features.md
+
+# JavaScript parsers
+cd benchmarks
+npm install
+node compare.mjs 30 2000 corpus/mixed-features.md
 ```
 
-The benchmark repeats a representative 294-byte Markdown sample 5,000 times (a 1.40 MiB input) and measures parsing plus HTML rendering. It uses `std::hint::black_box` so the parse result is not optimized away.
+On an Apple Silicon development machine with Rust 1.97.0 and Node.js 26.3.1, three 30-iteration runs over the same 1.27 MiB input produced these median results:
 
-On an Apple Silicon development machine with Rust 1.97.0, Node.js 26.3.1, and Marked 18.0.6, three 30-iteration runs produced these median results:
-
-| Parser | Mean per 1.40 MiB document | Throughput |
+| Parser | Mean per document | Throughput |
 | --- | ---: | ---: |
-| `marked-rs` (release build) | 31.13 ms | 45.03 MiB/s |
-| Marked 18.0.6 | 80.68 ms | 17.38 MiB/s |
+| `marked-rs` (release, GFM enabled) | 39.18 ms | 32.52 MiB/s |
+| markdown-it 14.1.0 | 58.60 ms | 21.74 MiB/s |
+| Marked 18.0.6 | 68.11 ms | 18.71 MiB/s |
 
-For this synthetic corpus, `marked-rs` was approximately **2.6× faster**. This is a useful MVP signal, not a general claim of full-parser superiority: Marked supports substantially more Markdown behavior and edge cases than this project currently implements. Re-run the benchmark on your own representative documents before making a production performance decision.
+For this representative corpus, `marked-rs` was approximately **1.5× faster than markdown-it** and **1.7× faster than Marked**. This is a useful MVP signal, not a general claim of full-parser superiority: the JavaScript parsers support more Markdown behavior and edge cases. Re-run the corpus alongside your own representative documents before making a production performance decision.
 
 ## Current limitations
 
@@ -199,7 +204,7 @@ Please treat the output as an HTML fragment. Although all source text and genera
 - [x] Broaden the core CommonMark subset and add fixture-based conformance tests
 - [x] Add nested block parsing and richer list behavior
 - [x] Add GitHub-Flavored Markdown extensions behind an explicit option
-- [ ] Benchmark against JavaScript Markdown parsers on representative files
+- [x] Benchmark against JavaScript Markdown parsers on representative files
 - [ ] Offer Node.js (N-API) and WebAssembly bindings
 - [ ] Support streaming and incremental parsing
 

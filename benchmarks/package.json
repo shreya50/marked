@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "compare": "node compare.mjs 30 1 corpus/*.md"
+  },
+  "dependencies": {
+    "markdown-it": "14.1.0",
+    "marked": "18.0.6"
+  }
+}
