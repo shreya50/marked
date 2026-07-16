@@ -3,6 +3,10 @@ pub fn render(source: &str) -> String {
     let mut i = 0;
     while i < source.len() {
         let rest = &source[i..];
+        if rest.starts_with("\\\n") { out.push_str("<br />\n"); i += 2; continue; }
+        if rest.starts_with("  \n") { out.push_str("<br />\n"); i += 3; continue; }
+        if let Some((html, used)) = autolink(rest) { out.push_str(&html); i += used; continue; }
+        if let Some((ch, used)) = escaped_character(rest) { escape_char(ch, &mut out); i += used; continue; }
         if let Some((html, used)) = image(rest).or_else(|| link(rest)) { out.push_str(&html); i += used; continue; }
         if let Some((html, used)) = wrapped(rest, "**", "strong").or_else(|| wrapped(rest, "__", "strong")).or_else(|| wrapped(rest, "*", "em")).or_else(|| wrapped(rest, "_", "em")).or_else(|| wrapped(rest, "`", "code")) { out.push_str(&html); i += used; continue; }
         let ch = rest.chars().next().unwrap();
@@ -11,8 +15,31 @@ pub fn render(source: &str) -> String {
     out
 }
 
-fn image(s: &str) -> Option<(String, usize)> { parse_link(s, "![", |label, url| format!("<img src=\"{}\" alt=\"{}\" />", escape(url), render(label))) }
-fn link(s: &str) -> Option<(String, usize)> { parse_link(s, "[", |label, url| format!("<a href=\"{}\">{}</a>", escape(url), render(label))) }
+fn autolink(s: &str) -> Option<(String, usize)> {
+    let body = s.strip_prefix('<')?;
+    let end = body.find('>')?;
+    let destination = &body[..end];
+    let href = if destination.starts_with("https://") || destination.starts_with("http://") {
+        destination
+    } else if is_email(destination) {
+        return Some((format!("<a href=\"mailto:{}\">{}</a>", escape_attr(destination), escape(destination)), end + 2));
+    } else { return None; };
+    Some((format!("<a href=\"{}\">{}</a>", escape_attr(href), escape(href)), end + 2))
+}
+
+fn is_email(value: &str) -> bool {
+    let Some((local, domain)) = value.split_once('@') else { return false; };
+    !local.is_empty() && domain.contains('.') && !domain.starts_with('.') && !domain.ends_with('.')
+}
+
+fn escaped_character(s: &str) -> Option<(char, usize)> {
+    let body = s.strip_prefix('\\')?;
+    let ch = body.chars().next()?;
+    "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~".contains(ch).then_some((ch, 1 + ch.len_utf8()))
+}
+
+fn image(s: &str) -> Option<(String, usize)> { parse_link(s, "![", |label, url| format!("<img src=\"{}\" alt=\"{}\" />", escape_attr(url), render(label))) }
+fn link(s: &str) -> Option<(String, usize)> { parse_link(s, "[", |label, url| format!("<a href=\"{}\">{}</a>", escape_attr(url), render(label))) }
 fn parse_link<F: FnOnce(&str, &str) -> String>(s: &str, prefix: &str, make: F) -> Option<(String, usize)> {
     let after = s.strip_prefix(prefix)?; let end_label = after.find("](")?;
     let after_url = &after[end_label + 2..]; let end_url = after_url.find(')')?;
@@ -23,4 +50,5 @@ fn wrapped(s: &str, marker: &str, tag: &str) -> Option<(String, usize)> {
     Some((format!("<{tag}>{}</{tag}>", if tag == "code" { escape(&body[..end]) } else { render(&body[..end]) }), marker.len() * 2 + end))
 }
 pub fn escape(s: &str) -> String { let mut out = String::new(); for ch in s.chars() { escape_char(ch, &mut out); } out }
-fn escape_char(ch: char, out: &mut String) { match ch { '&' => out.push_str("&amp;"), '<' => out.push_str("&lt;"), '>' => out.push_str("&gt;"), '"' => out.push_str("&quot;"), _ => out.push(ch) } }
+pub fn escape_attr(s: &str) -> String { escape(s).replace('"', "&quot;") }
+fn escape_char(ch: char, out: &mut String) { match ch { '&' => out.push_str("&amp;"), '<' => out.push_str("&lt;"), '>' => out.push_str("&gt;"), _ => out.push(ch) } }

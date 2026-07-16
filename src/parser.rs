@@ -12,9 +12,12 @@ pub fn parse(lines: Vec<Line<'_>>) -> Document {
         if let Some((level, content)) = heading(line) {
             blocks.push(Block::Heading { level, content: content.to_owned() });
             i += 1;
-        } else if let Some(language) = fence_opening(line) {
-            let (content, next) = code_fence(&lines, i + 1);
-            blocks.push(Block::CodeFence { language, content });
+        } else if let Some((level, content)) = setext_heading(&lines, i) {
+            blocks.push(Block::Heading { level, content: content.to_owned() });
+            i += 2;
+        } else if let Some(fence) = fence_opening(line) {
+            let (content, next) = code_fence(&lines, i + 1, fence.marker, fence.length);
+            blocks.push(Block::CodeFence { language: fence.language, content });
             i = next;
         } else if is_rule(line) {
             blocks.push(Block::HorizontalRule);
@@ -43,20 +46,49 @@ fn heading(line: &str) -> Option<(u8, &str)> {
     Some((level as u8, trimmed[level..].trim().trim_end_matches('#').trim()))
 }
 
-fn fence_opening(line: &str) -> Option<Option<String>> {
-    let rest = line.trim_start().strip_prefix("```")?;
-    let language = rest.trim();
-    Some((!language.is_empty()).then(|| language.to_owned()))
+fn setext_heading<'a>(lines: &[Line<'a>], index: usize) -> Option<(u8, &'a str)> {
+    let content = lines.get(index)?.text.trim();
+    let underline = lines.get(index + 1)?.text.trim();
+    if content.is_empty() { return None; }
+    if heading(content).is_some() || fence_opening(content).is_some() || is_rule(content)
+        || list_item(content).is_some() || quote_content(content).is_some() { return None; }
+    let marker = underline.chars().next()?;
+    if !matches!(marker, '=' | '-') || underline.len() < 1 || !underline.chars().all(|ch| ch == marker) {
+        return None;
+    }
+    Some((if marker == '=' { 1 } else { 2 }, content))
 }
 
-fn code_fence(lines: &[Line<'_>], mut i: usize) -> (String, usize) {
+struct Fence {
+    marker: char,
+    length: usize,
+    language: Option<String>,
+}
+
+fn fence_opening(line: &str) -> Option<Fence> {
+    let trimmed = line.trim_start();
+    let marker = trimmed.chars().next()?;
+    if !matches!(marker, '`' | '~') { return None; }
+    let length = trimmed.chars().take_while(|ch| *ch == marker).count();
+    if length < 3 { return None; }
+    let language = trimmed[length..].trim();
+    Some(Fence { marker, length, language: (!language.is_empty()).then(|| language.to_owned()) })
+}
+
+fn code_fence(lines: &[Line<'_>], mut i: usize, marker: char, length: usize) -> (String, usize) {
     let mut output = String::new();
-    while i < lines.len() && !lines[i].text.trim_start().starts_with("```") {
+    while i < lines.len() && !is_fence_closing(lines[i].text, marker, length) {
         output.push_str(lines[i].text);
         output.push('\n');
         i += 1;
     }
     (output, if i < lines.len() { i + 1 } else { i })
+}
+
+fn is_fence_closing(line: &str, marker: char, length: usize) -> bool {
+    let trimmed = line.trim_start();
+    trimmed.chars().take_while(|ch| *ch == marker).count() >= length
+        && trimmed.chars().skip_while(|ch| *ch == marker).all(char::is_whitespace)
 }
 
 fn is_rule(line: &str) -> bool {
@@ -94,8 +126,8 @@ fn paragraph(lines: &[Line<'_>], mut i: usize) -> (String, usize) {
     let mut content = Vec::new();
     while i < lines.len() {
         let line = lines[i].text;
-        if line.trim().is_empty() || fence_opening(line).is_some() || heading(line).is_some() || is_rule(line) || list_item(line).is_some() || quote_content(line).is_some() { break; }
-        content.push(line.trim()); i += 1;
+        if line.trim().is_empty() || fence_opening(line).is_some() || heading(line).is_some() || setext_heading(lines, i).is_some() || is_rule(line) || list_item(line).is_some() || quote_content(line).is_some() { break; }
+        content.push(line.trim_start()); i += 1;
     }
-    (content.join(" "), i)
+    (content.join("\n"), i)
 }

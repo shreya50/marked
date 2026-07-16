@@ -1,0 +1,3 @@
+~~~rust
+let literal = "<tag>";
+~~~
