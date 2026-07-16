@@ -14,6 +14,10 @@ Markdown parsing is a useful migration target: it has well-defined inputs and ou
 
 This repository is an MVP, not a complete implementation of [Marked](https://marked.js.org/) or the full CommonMark specification.
 
+##How we built it
+
+We built the project using OpenAI Codex with GPT-5.6 Terra (Medium) as our AI pair programmer. Codex helped us understand the original architecture, translate JavaScript logic into idiomatic Rust, write tests, benchmark performance, and iterate quickly throughout the migration. 
+
 ## Features
 
 - No runtime dependencies
