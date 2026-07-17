@@ -56,6 +56,16 @@ Raw HTML is escaped rather than passed through. Text in code blocks and inline c
 
 Install the stable [Rust toolchain](https://www.rust-lang.org/tools/install), which includes Cargo.
 
+### Supported platforms
+
+| Surface | Support |
+| --- | --- |
+| Rust library and CLI | Any platform supported by the stable Rust toolchain. |
+| Node.js binding | Platforms that can compile a Rust N-API dynamic library; package platform-specific `.node` binaries for distribution. |
+| WebAssembly binding | Modern browsers and other WebAssembly hosts through the `wasm32-unknown-unknown` target. |
+
+The project is regularly validated on Apple Silicon macOS with stable Rust. Native Node and WebAssembly artifacts should be built per target; prebuilt binaries are not published yet.
+
 ### From a checkout
 
 ```bash
@@ -65,6 +75,13 @@ cargo build --release
 ```
 
 The release executable is available at `target/release/marked-rs`.
+
+For a globally available development CLI, install from the checkout:
+
+```bash
+cargo install --path .
+marked-rs README.md
+```
 
 ### Command-line interface
 
@@ -186,7 +203,7 @@ The project separates the pipeline into small modules so that individual layers 
 
 ## Development
 
-Run the full test suite:
+Run the complete Rust test suite:
 
 ```bash
 cargo test
@@ -205,6 +222,25 @@ cargo build --release
 ```
 
 The test suite includes focused unit tests and integration tests for parsing boundaries, escaping, list variants, code fences, and public AST access. Core CommonMark-style behavior is also covered by Markdown/HTML fixture pairs in `tests/fixtures/commonmark-core`; add a matching `.md` and `.html` file there to create a new conformance case.
+
+### Validation matrix
+
+Run the checks appropriate to the surfaces you change:
+
+```bash
+# Core parser, fixtures, streaming, and incremental APIs
+cargo test
+
+# Native Node.js export
+cargo check --features node
+
+# WebAssembly export
+rustup target add wasm32-unknown-unknown
+cargo build --release --target wasm32-unknown-unknown --features wasm
+
+# JavaScript benchmark harness
+cd benchmarks && npm ci && node compare.mjs 2 10 corpus/mixed-features.md
+```
 
 ## Benchmarking
 
@@ -239,7 +275,7 @@ The MVP intentionally does not yet support every Markdown dialect or CommonMark 
 - Reference-style links, autolinks, titles, and URL edge cases
 - HTML passthrough
 - Full delimiter rules for complex or overlapping emphasis
-- Source positions, streaming input, or incremental parsing
+- Source positions and block-level incremental cache reuse
 
 Please treat the output as an HTML fragment. Although all source text and generated attributes are escaped by the renderer, consumers should still apply their normal HTML safety practices when inserting output into an application.
 
