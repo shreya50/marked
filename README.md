@@ -250,6 +250,9 @@ The repository includes a mixed-feature corpus—headings, quotes, lists, code, 
 # Rust parser, with GFM enabled for parity with the corpus
 cargo run --release --example benchmark -- 30 2000 benchmarks/corpus/mixed-features.md
 
+# Side-by-side marked vs. marked-rs timing
+cargo run --release --example benchmark -- --compare-js 30 2000 benchmarks/corpus/mixed-features.md
+
 # JavaScript parsers
 cd benchmarks
 npm install
