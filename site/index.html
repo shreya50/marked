@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="marked-rs: a compact, dependency-free Markdown-to-HTML parser written in Rust."
+    />
+    <title>marked-rs — Markdown, with a Rust core</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="#top" aria-label="marked-rs home">marked<span>-rs</span></a>
+        <a class="nav-link" href="https://github.com/shreya50/marked">View on GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
+
+      <section class="hero" id="top">
+        <p class="eyebrow">A compact Rust Markdown parser</p>
+        <h1>Markdown in.<br /><em>Safe HTML</em> out.</h1>
+        <p class="lede">
+          marked-rs is a dependency-free Markdown-to-HTML parser with a small core,
+          opt-in GFM support, and native, Node.js, and WebAssembly surfaces.
+        </p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/shreya50/marked">Explore the repository</a>
+          <a class="button ghost" href="#quickstart">Get started ↓</a>
+        </div>
+      </section>
+
+      <section class="terminal" aria-label="Command-line example">
+        <div class="terminal-bar"><span></span><span></span><span></span><code>marked-rs</code></div>
+        <pre><code><span class="prompt">$</span> printf '# Hello, Rust!\n\n**Fast** Markdown.\n' | cargo run --quiet
+<span class="output">&lt;h1&gt;Hello, Rust!&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;Fast&lt;/strong&gt; Markdown.&lt;/p&gt;</span></code></pre>
+      </section>
+
+      <section class="features" aria-labelledby="features-heading">
+        <div class="section-heading">
+          <p class="eyebrow">Focused by design</p>
+          <h2 id="features-heading">The pieces you need,<br />without the weight.</h2>
+        </div>
+        <div class="feature-grid">
+          <article>
+            <span class="icon" aria-hidden="true">◌</span>
+            <h3>No runtime dependencies</h3>
+            <p>A compact parsing pipeline that stays easy to understand, test, and extend.</p>
+          </article>
+          <article>
+            <span class="icon" aria-hidden="true">✦</span>
+            <h3>Safe HTML by default</h3>
+            <p>Source text and generated attributes are escaped before they reach the renderer.</p>
+          </article>
+          <article>
+            <span class="icon" aria-hidden="true">↔</span>
+            <h3>Built for every surface</h3>
+            <p>Use the Rust library and CLI today, or enable Node.js and WebAssembly bindings.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="split" id="quickstart">
+        <div>
+          <p class="eyebrow">Quick start</p>
+          <h2>One small API.</h2>
+          <p>Render Markdown directly, or inspect the document AST before adding a custom renderer.</p>
+        </div>
+        <pre class="code-card"><code><span class="keyword">let</span> html = marked_rs::parse(
+  <span class="string">"# Hello\n\nA **small** parser."</span>
+);
+
+<span class="comment">// &lt;h1&gt;Hello&lt;/h1&gt; …</span></code></pre>
+      </section>
+
+      <section class="metrics" aria-label="Benchmark results">
+        <div>
+          <p class="eyebrow">Representative benchmark</p>
+          <h2>Fast where it counts.</h2>
+          <p>Median throughput on a 1.27 MiB mixed-feature Markdown corpus.</p>
+        </div>
+        <div class="metric-grid">
+          <div><strong>32.52</strong><span>MiB/s<br />marked-rs</span></div>
+          <div><strong>1.5×</strong><span>faster than<br />markdown-it</span></div>
+          <div><strong>1.7×</strong><span>faster than<br />Marked</span></div>
+        </div>
+      </section>
+
+      <section class="cta">
+        <p class="eyebrow">Ready when you are</p>
+        <h2>Build something<br /><em>pleasantly fast.</em></h2>
+        <a class="button primary" href="https://github.com/shreya50/marked">Start with marked-rs <span aria-hidden="true">↗</span></a>
+      </section>
+    </main>
+    <footer>
+      <span>marked-rs · MIT licensed</span>
+      <a href="https://github.com/shreya50/marked">GitHub</a>
+    </footer>
+  </body>
+</html>
