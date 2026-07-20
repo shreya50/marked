@@ -4,6 +4,10 @@
 
 It accepts Markdown text and produces an escaped HTML fragment.
 
+## Try it live
+
+Use the interactive browser playground at [marked-rs.netlify.app](https://marked-rs.netlify.app/). It loads the project's WebAssembly build, so the HTML is produced by the Rust parser directly in your browser.
+
 ```text
 Markdown source → tokenizer → block parser / AST → HTML renderer
 ```
@@ -213,6 +217,12 @@ Check formatting before opening a pull request:
 
 ```bash
 cargo fmt --check
+```
+
+Run the linter with warnings treated as errors:
+
+```bash
+cargo clippy --all-targets -- -D warnings
 ```
 
 Build an optimized binary:

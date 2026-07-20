@@ -16,10 +16,17 @@ pub struct StreamParser {
 }
 
 impl StreamParser {
-    pub fn new() -> Self { Self::with_options(Options::default()) }
+    pub fn new() -> Self {
+        Self::with_options(Options::default())
+    }
 
     pub fn with_options(options: Options) -> Self {
-        Self { options, line_buffer: String::new(), pending: String::new(), fence: None }
+        Self {
+            options,
+            line_buffer: String::new(),
+            pending: String::new(),
+            fence: None,
+        }
     }
 
     /// Accepts a source chunk and returns HTML for block groups that are now complete.
@@ -47,29 +54,54 @@ impl StreamParser {
     fn push_line(&mut self, line: &str) -> String {
         self.update_fence(line);
         self.pending.push_str(line);
-        if line.trim().is_empty() && self.fence.is_none() { self.flush() } else { String::new() }
+        if line.trim().is_empty() && self.fence.is_none() {
+            self.flush()
+        } else {
+            String::new()
+        }
     }
 
     fn flush(&mut self) -> String {
-        if self.pending.trim().is_empty() { self.pending.clear(); return String::new(); }
+        if self.pending.trim().is_empty() {
+            self.pending.clear();
+            return String::new();
+        }
         parse_with_options(&mem::take(&mut self.pending), self.options)
     }
 
     fn update_fence(&mut self, line: &str) {
         let trimmed = line.trim_start();
-        let Some(marker) = trimmed.chars().next() else { return; };
-        if !matches!(marker, '`' | '~') { return; }
+        let Some(marker) = trimmed.chars().next() else {
+            return;
+        };
+        if !matches!(marker, '`' | '~') {
+            return;
+        }
         let count = trimmed.chars().take_while(|ch| *ch == marker).count();
-        if count < 3 { return; }
+        if count < 3 {
+            return;
+        }
         match self.fence {
             None => self.fence = Some(marker),
-            Some(open) if open == marker && trimmed.chars().skip_while(|ch| *ch == marker).all(char::is_whitespace) => self.fence = None,
+            Some(open)
+                if open == marker
+                    && trimmed
+                        .chars()
+                        .skip_while(|ch| *ch == marker)
+                        .all(char::is_whitespace) =>
+            {
+                self.fence = None
+            }
             _ => {}
         }
     }
 }
 
-impl Default for StreamParser { fn default() -> Self { Self::new() } }
+impl Default for StreamParser {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 /// An editable Markdown document that immediately refreshes its rendered HTML.
 ///
@@ -84,20 +116,32 @@ pub struct IncrementalParser {
 }
 
 impl IncrementalParser {
-    pub fn new(source: impl Into<String>) -> Self { Self::with_options(source, Options::default()) }
+    pub fn new(source: impl Into<String>) -> Self {
+        Self::with_options(source, Options::default())
+    }
 
     pub fn with_options(source: impl Into<String>, options: Options) -> Self {
         let source = source.into();
         let html = parse_with_options(&source, options);
-        Self { options, source, html }
+        Self {
+            options,
+            source,
+            html,
+        }
     }
 
-    pub fn source(&self) -> &str { &self.source }
-    pub fn html(&self) -> &str { &self.html }
+    pub fn source(&self) -> &str {
+        &self.source
+    }
+    pub fn html(&self) -> &str {
+        &self.html
+    }
 
     /// Replaces a UTF-8 byte range and returns the refreshed HTML.
     pub fn replace(&mut self, range: Range<usize>, replacement: &str) -> Result<&str, EditError> {
-        if range.start > range.end || range.end > self.source.len() { return Err(EditError::OutOfBounds); }
+        if range.start > range.end || range.end > self.source.len() {
+            return Err(EditError::OutOfBounds);
+        }
         if !self.source.is_char_boundary(range.start) || !self.source.is_char_boundary(range.end) {
             return Err(EditError::InvalidUtf8Boundary);
         }
@@ -108,13 +152,18 @@ impl IncrementalParser {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum EditError { OutOfBounds, InvalidUtf8Boundary }
+pub enum EditError {
+    OutOfBounds,
+    InvalidUtf8Boundary,
+}
 
 impl fmt::Display for EditError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::OutOfBounds => formatter.write_str("edit range is outside the source"),
-            Self::InvalidUtf8Boundary => formatter.write_str("edit range does not fall on UTF-8 character boundaries"),
+            Self::InvalidUtf8Boundary => {
+                formatter.write_str("edit range does not fall on UTF-8 character boundaries")
+            }
         }
     }
 }

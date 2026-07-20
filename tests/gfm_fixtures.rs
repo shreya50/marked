@@ -8,7 +8,12 @@ fn renders_gfm_fixtures_when_enabled() {
     let mut sources: Vec<_> = fs::read_dir(&fixtures)
         .expect("read fixture directory")
         .map(Result::unwrap)
-        .filter(|entry| entry.path().extension().is_some_and(|extension| extension == "md"))
+        .filter(|entry| {
+            entry
+                .path()
+                .extension()
+                .is_some_and(|extension| extension == "md")
+        })
         .collect();
     sources.sort_by_key(|entry| entry.file_name());
 
@@ -17,11 +22,19 @@ fn renders_gfm_fixtures_when_enabled() {
         let expected_path = path.with_extension("html");
         let markdown = fs::read_to_string(&path).expect("read Markdown fixture");
         let expected = fs::read_to_string(&expected_path).expect("read HTML fixture");
-        assert_eq!(parse_with_options(&markdown, Options { gfm: true }), expected, "fixture {}", path.display());
+        assert_eq!(
+            parse_with_options(&markdown, Options { gfm: true }),
+            expected,
+            "fixture {}",
+            path.display()
+        );
     }
 }
 
 #[test]
 fn gfm_extensions_are_disabled_by_default() {
-    assert_eq!(parse("This is ~~literal~~."), "<p>This is ~~literal~~.</p>\n");
+    assert_eq!(
+        parse("This is ~~literal~~."),
+        "<p>This is ~~literal~~.</p>\n"
+    );
 }

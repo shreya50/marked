@@ -6,5 +6,10 @@ use crate::{parse_with_options, Options};
 /// GitHub-Flavored Markdown subset.
 #[napi]
 pub fn parse_markdown(markdown: String, gfm: Option<bool>) -> String {
-    parse_with_options(&markdown, Options { gfm: gfm.unwrap_or(false) })
+    parse_with_options(
+        &markdown,
+        Options {
+            gfm: gfm.unwrap_or(false),
+        },
+    )
 }

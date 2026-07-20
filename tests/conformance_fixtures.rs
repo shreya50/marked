@@ -8,7 +8,12 @@ fn renders_core_commonmark_fixtures() {
     let mut sources: Vec<_> = fs::read_dir(&fixtures)
         .expect("read fixture directory")
         .map(Result::unwrap)
-        .filter(|entry| entry.path().extension().is_some_and(|extension| extension == "md"))
+        .filter(|entry| {
+            entry
+                .path()
+                .extension()
+                .is_some_and(|extension| extension == "md")
+        })
         .collect();
     sources.sort_by_key(|entry| entry.file_name());
 

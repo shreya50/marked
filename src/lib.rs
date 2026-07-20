@@ -55,7 +55,10 @@ mod tests {
 
     #[test]
     fn renders_headings_and_paragraphs() {
-        assert_eq!(parse("# Hello\n\nA small paragraph."), "<h1>Hello</h1>\n<p>A small paragraph.</p>\n");
+        assert_eq!(
+            parse("# Hello\n\nA small paragraph."),
+            "<h1>Hello</h1>\n<p>A small paragraph.</p>\n"
+        );
     }
 
     #[test]
@@ -68,7 +71,10 @@ mod tests {
 
     #[test]
     fn renders_fenced_code_without_parsing_contents() {
-        assert_eq!(parse("```rust\nlet x = 1 < 2;\n```"), "<pre><code class=\"language-rust\">let x = 1 &lt; 2;\n</code></pre>\n");
+        assert_eq!(
+            parse("```rust\nlet x = 1 < 2;\n```"),
+            "<pre><code class=\"language-rust\">let x = 1 &lt; 2;\n</code></pre>\n"
+        );
     }
 
     #[test]
@@ -81,6 +87,9 @@ mod tests {
 
     #[test]
     fn escapes_raw_html() {
-        assert_eq!(parse("<script>alert('no')</script>"), "<p>&lt;script&gt;alert('no')&lt;/script&gt;</p>\n");
+        assert_eq!(
+            parse("<script>alert('no')</script>"),
+            "<p>&lt;script&gt;alert('no')&lt;/script&gt;</p>\n"
+        );
     }
 }

@@ -26,7 +26,7 @@
         </p>
         <div class="actions">
           <a class="button primary" href="https://github.com/shreya50/marked">Explore the repository</a>
-          <a class="button ghost" href="#quickstart">Get started ↓</a>
+          <a class="button ghost" href="#playground">Try it live ↓</a>
         </div>
       </section>
 
@@ -74,6 +74,39 @@
 <span class="comment">// &lt;h1&gt;Hello&lt;/h1&gt; …</span></code></pre>
       </section>
 
+      <section class="playground" id="playground" aria-labelledby="playground-heading">
+        <div class="section-heading">
+          <p class="eyebrow">Try it in your browser</p>
+          <h2 id="playground-heading">A real Rust parser,<br /><em>right in your tab.</em></h2>
+          <p class="playground-lede">Edit the Markdown and see the HTML produced by marked-rs running through WebAssembly.</p>
+        </div>
+        <div class="playground-shell">
+          <div class="editor-pane">
+            <div class="pane-header">
+              <label for="markdown-input">Markdown</label>
+              <label class="toggle" for="gfm-toggle"><input id="gfm-toggle" type="checkbox" checked /> Enable GFM</label>
+            </div>
+            <textarea id="markdown-input" spellcheck="false" aria-label="Markdown input"># Hello from Rust
+
+marked-rs runs **in this browser** through WebAssembly.
+
+- Fast, safe HTML
+- _No_ JavaScript parser required
+
+| Surface | Status |
+| --- | --- |
+| Browser | Ready |</textarea>
+          </div>
+          <div class="output-pane">
+            <div class="pane-header">
+              <span>Generated HTML</span>
+              <span id="wasm-status" class="wasm-status" role="status" aria-live="polite">Loading WebAssembly…</span>
+            </div>
+            <pre id="html-output" class="html-output" aria-label="Generated HTML"></pre>
+          </div>
+        </div>
+      </section>
+
       <section class="metrics" aria-label="Benchmark results">
         <div>
           <p class="eyebrow">Representative benchmark</p>
@@ -97,5 +130,6 @@
       <span>marked-rs · MIT licensed</span>
       <a href="https://github.com/shreya50/marked">GitHub</a>
     </footer>
+    <script type="module" src="playground.js"></script>
   </body>
 </html>

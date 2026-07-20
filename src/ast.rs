@@ -5,12 +5,26 @@ pub struct Document {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Block {
-    Heading { level: u8, content: String },
+    Heading {
+        level: u8,
+        content: String,
+    },
     Paragraph(String),
-    CodeFence { language: Option<String>, content: String },
-    List { ordered: bool, start: u64, items: Vec<ListItem> },
+    CodeFence {
+        language: Option<String>,
+        content: String,
+    },
+    List {
+        ordered: bool,
+        start: u64,
+        items: Vec<ListItem>,
+    },
     BlockQuote(Vec<Block>),
-    Table { header: Vec<String>, alignments: Vec<TableAlignment>, rows: Vec<Vec<String>> },
+    Table {
+        header: Vec<String>,
+        alignments: Vec<TableAlignment>,
+        rows: Vec<Vec<String>>,
+    },
     HorizontalRule,
 }
 
@@ -23,4 +37,9 @@ pub struct ListItem {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TableAlignment { None, Left, Center, Right }
+pub enum TableAlignment {
+    None,
+    Left,
+    Center,
+    Right,
+}
